@@ -16,7 +16,7 @@ class Pokemon
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="NONE")
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -25,11 +25,6 @@ class Pokemon
      * @ORM\Column(type="string", length=255)
      */
     private $name;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $pokeapi_id;
 
     /**
      * @ORM\Column(type="integer")
@@ -44,32 +39,38 @@ class Pokemon
     /**
      * @ORM\Column(type="integer")
      */
-    private $base_experience;
+    private $baseExperience;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $pokedex_order;
+    private $pokedexOrder;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Type::class, inversedBy="pokemon")
+     * @ORM\ManyToMany(targetEntity=Type::class, inversedBy="pokemons")
      */
     private $types;
 
     /**
-     * @ORM\OneToMany(targetEntity=PokemonAttacks::class, mappedBy="pokemon")
+     * @ORM\OneToMany(targetEntity=PokemonAttack::class, mappedBy="pokemon", orphanRemoval=true)
      */
-    private $pokemonAttacks;
+    private $attacks;
 
     public function __construct()
     {
         $this->types = new ArrayCollection();
-        $this->pokemonAttacks = new ArrayCollection();
+        $this->attacks = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getName(): ?string
@@ -80,18 +81,6 @@ class Pokemon
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getPokeapiId(): ?int
-    {
-        return $this->pokeapi_id;
-    }
-
-    public function setPokeapiId(int $pokeapi_id): self
-    {
-        $this->pokeapi_id = $pokeapi_id;
 
         return $this;
     }
@@ -122,24 +111,24 @@ class Pokemon
 
     public function getBaseExperience(): ?int
     {
-        return $this->base_experience;
+        return $this->baseExperience;
     }
 
-    public function setBaseExperience(int $base_experience): self
+    public function setBaseExperience(int $baseExperience): self
     {
-        $this->base_experience = $base_experience;
+        $this->baseExperience = $baseExperience;
 
         return $this;
     }
 
     public function getPokedexOrder(): ?int
     {
-        return $this->pokedex_order;
+        return $this->pokedexOrder;
     }
 
-    public function setPokedexOrder(int $pokedex_order): self
+    public function setPokedexOrder(int $pokedexOrder): self
     {
-        $this->pokedex_order = $pokedex_order;
+        $this->pokedexOrder = $pokedexOrder;
 
         return $this;
     }
@@ -169,33 +158,32 @@ class Pokemon
     }
 
     /**
-     * @return Collection|PokemonAttacks[]
+     * @return Collection|PokemonAttack[]
      */
-    public function getPokemonAttacks(): Collection
+    public function getAttacks(): Collection
     {
-        return $this->pokemonAttacks;
+        return $this->attacks;
     }
 
-    public function addPokemonAttack(PokemonAttacks $pokemonAttack): self
+    public function addAttack(PokemonAttack $attack): self
     {
-        if (!$this->pokemonAttacks->contains($pokemonAttack)) {
-            $this->pokemonAttacks[] = $pokemonAttack;
-            $pokemonAttack->setPokemon($this);
+        if (!$this->attacks->contains($attack)) {
+            $this->attacks[] = $attack;
+            $attack->setPokemon($this);
         }
 
         return $this;
     }
 
-    public function removePokemonAttack(PokemonAttacks $pokemonAttack): self
+    public function removeAttack(PokemonAttack $attack): self
     {
-        if ($this->pokemonAttacks->removeElement($pokemonAttack)) {
+        if ($this->attacks->removeElement($attack)) {
             // set the owning side to null (unless already changed)
-            if ($pokemonAttack->getPokemon() === $this) {
-                $pokemonAttack->setPokemon(null);
+            if ($attack->getPokemon() === $this) {
+                $attack->setPokemon(null);
             }
         }
 
         return $this;
     }
-
 }

@@ -2,14 +2,12 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\AttackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
  * @ORM\Entity(repositoryClass=AttackRepository::class)
  */
 class Attack
@@ -24,7 +22,7 @@ class Attack
     /**
      * @ORM\Column(type="integer")
      */
-    private $pokeapi_id;
+    private $pokeapiId;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -48,16 +46,18 @@ class Attack
 
     /**
      * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="attacks")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $type;
 
     /**
-     * @ORM\ManyToOne(targetEntity=PokemonAttacks::class, inversedBy="attack")
+     * @ORM\OneToMany(targetEntity=PokemonAttack::class, mappedBy="attack", orphanRemoval=true)
      */
-    private $pokemonAttacks;
+    private $pokemons;
 
     public function __construct()
     {
+        $this->pokemons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -67,12 +67,12 @@ class Attack
 
     public function getPokeapiId(): ?int
     {
-        return $this->pokeapi_id;
+        return $this->pokeapiId;
     }
 
-    public function setPokeapiId(int $pokeapi_id): self
+    public function setPokeapiId(int $pokeapiId): self
     {
-        $this->pokeapi_id = $pokeapi_id;
+        $this->pokeapiId = $pokeapiId;
 
         return $this;
     }
@@ -137,16 +137,33 @@ class Attack
         return $this;
     }
 
-    public function getPokemonAttacks(): ?PokemonAttacks
+    /**
+     * @return Collection|PokemonAttack[]
+     */
+    public function getPokemons(): Collection
     {
-        return $this->pokemonAttacks;
+        return $this->pokemons;
     }
 
-    public function setPokemonAttacks(?PokemonAttacks $pokemonAttacks): self
+    public function addPokemon(PokemonAttack $pokemon): self
     {
-        $this->pokemonAttacks = $pokemonAttacks;
+        if (!$this->pokemons->contains($pokemon)) {
+            $this->pokemons[] = $pokemon;
+            $pokemon->setAttack($this);
+        }
 
         return $this;
     }
 
+    public function removePokemon(PokemonAttack $pokemon): self
+    {
+        if ($this->pokemons->removeElement($pokemon)) {
+            // set the owning side to null (unless already changed)
+            if ($pokemon->getAttack() === $this) {
+                $pokemon->setAttack(null);
+            }
+        }
+
+        return $this;
+    }
 }
