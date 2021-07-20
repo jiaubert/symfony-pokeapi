@@ -8,8 +8,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\MaxDepth;
 
+/*
+ * Entity declared has @ApiResource. It will be available on /api/docs.
+ * The default group for normalization is "pokemon:get". You can set the string you want, but it has to be found in @Group
+ * annotation on entities.
+ */
 /**
  * @ApiResource(
  *     normalizationContext={
@@ -65,8 +69,7 @@ class Pokemon
     private $types;
 
     /**
-     * @ORM\OneToMany(targetEntity=PokemonAttack::class, mappedBy="pokemon", orphanRemoval=true)
-     * @MaxDepth(1)
+     * @ORM\OneToMany(targetEntity=PokemonAttack::class, mappedBy="pokemon", orphanRemoval=true, cascade={"persist", "remove"})
      * @Groups({"pokemon:get"})
      */
     private $attacks;
@@ -179,7 +182,6 @@ class Pokemon
     {
         if (!$this->attacks->contains($attack)) {
             $this->attacks[] = $attack;
-            $attack->setPokemon($this);
         }
 
         return $this;
@@ -187,12 +189,7 @@ class Pokemon
 
     public function removeAttack(PokemonAttack $attack): self
     {
-        if ($this->attacks->removeElement($attack)) {
-            // set the owning side to null (unless already changed)
-            if ($attack->getPokemon() === $this) {
-                $attack->setPokemon(null);
-            }
-        }
+        $this->attacks->removeElement($attack);
 
         return $this;
     }
